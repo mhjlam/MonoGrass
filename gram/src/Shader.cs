@@ -124,9 +124,11 @@ namespace gram3
 
 	class ProjectionShader : Shader
 	{
+		public Vector3 ProjectorPosition = new Vector3(0.0f, 20.0f, 30.0f);
+
 		public ProjectionShader(Effect effect, CookTorranceMaterial material, Texture2D texture) : base(effect)
 		{
-			effect.Parameters["ProjectorPosition"].SetValue(new Vector3(0.0f, 20.0f, 30.0f));
+			effect.Parameters["ProjectorPosition"].SetValue(ProjectorPosition);
 			effect.Parameters["AmbientColor"].SetValue(Color.Beige.ToVector3());
 			effect.Parameters["DiffuseColor"].SetValue(Color.BurlyWood.ToVector3());
 			effect.Parameters["AmbientIntensity"].SetValue(material.AmbientIntensity);

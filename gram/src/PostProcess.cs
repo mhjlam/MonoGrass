@@ -41,7 +41,7 @@ namespace gram3
 	public class GaussianBlur : PostProcess
 	{
 		// blur coefficient (sigma / σ)
-		private float blur;
+		private float sigma;
 
 		// horizontal and vertical weights for the sampler
 		private float[] horizontalWeights, verticalWeights;
@@ -56,7 +56,7 @@ namespace gram3
 		// The Guassian blur post-processor is based on the default post-processor with added calculations for required shader parameters.
 		public GaussianBlur(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, Effect postProcessEffect, float blurCoefficient = 2.0f) : base(graphicsDevice, spriteBatch, postProcessEffect)
 		{
-			blur = blurCoefficient;
+			sigma = blurCoefficient;
 
 			float centerX = 1f / (float)device.Viewport.Width;
 			float centerY = 1f / (float)device.Viewport.Height;
@@ -98,7 +98,7 @@ namespace gram3
 		{
 			// when computing a discrete approximation of the Gaussian function, 
 			// pixels at a distance of more than 3σ can be ignored (second paragraph: http://en.wikipedia.org/wiki/Gaussian_blur#Mechanics)
-			int limit = (int)(3 * blur); // the shader can support a blur coefficient up to 5.0f, since it always uses 15 samples
+			int limit = (int)(3 * sigma); // the shader can support a blur coefficient up to 5.0f, since it always uses 15 samples
 
 			// prevent any out of range errors that may occur when calculating the parameters
 			if (limit % 2 == 0) limit++; // increment limit if number is even
@@ -139,7 +139,7 @@ namespace gram3
 		// Equation for Gaussian function in one dimension (http://en.wikipedia.org/wiki/Gaussian_blur#Mechanics)
 		private float GaussianFunction(float x) // x is the distance from the center pixel
 		{
-			float sigma2 = blur * blur;
+			float sigma2 = sigma * sigma;
 			return (float)((1.0f / Math.Sqrt(2 * Math.PI * sigma2)) * Math.Exp(-(x * x) / (2 * sigma2)));
 		}
 	}

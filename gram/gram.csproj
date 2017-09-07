@@ -71,7 +71,7 @@
     <Compile Include="src\PostProcess.cs" />
     <Compile Include="src\Program.cs" />
     <Compile Include="src\Scene.cs" />
-    <Compile Include="src\SceneSwitcher.cs" />
+    <Compile Include="src\SceneManager.cs" />
     <Compile Include="src\Shader.cs" />
   </ItemGroup>
   <ItemGroup>

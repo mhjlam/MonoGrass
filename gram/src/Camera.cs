@@ -4,31 +4,24 @@ namespace gram3
 {
 	public class Camera
 	{
-		private Matrix viewMatrix;
-		private Matrix projectionMatrix;
+		private float defaultAspect;
+		private Matrix view;
+		private Matrix proj;
 
-		private Vector3 currentPosition;
-		private Vector3 currentTarget;
+		private Vector3 position;
+		private Vector3 target;
 		private Vector3 defaultPosition;
 		private Vector3 defaultTarget;
 
-		public Vector3 Position => currentPosition;
-		public Matrix ViewMatrix => viewMatrix;
+		public Vector3 Position => position;
+		public Matrix ViewMatrix => view;
+		public Matrix ProjectionMatrix => proj;
 
-		public Matrix ProjectionMatrix
+		public Camera(Vector3 position, Vector3 lookAt, float aspectRatio = 1.0f)
 		{
-			get { return projectionMatrix; }
-			set { projectionMatrix = value; }
-		}
-
-		public Camera(Vector3 position, Vector3 lookAt, float aspectRatio = 1.25f)
-		{
-			// Save default position and target
+			defaultAspect = aspectRatio;
 			defaultPosition = position;
 			defaultTarget = lookAt;
-
-			// Create a projection matrix
-			projectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspectRatio, 1.0f, 100.0f); // field of view of the camera (view angle, aspect ratio, near, far)
 
 			// Reset the camera, setting it to the default position and target
 			Reset();
@@ -37,23 +30,23 @@ namespace gram3
 		// Apply an arbitrary transformation matrix to the view matrix.
 		public void Transform(Matrix transformationMatrix)
 		{
-			viewMatrix = Matrix.Multiply(viewMatrix, transformationMatrix);
-			Vector3.Transform(currentPosition, transformationMatrix);
+			view = Matrix.Multiply(view, transformationMatrix);
+			Vector3.Transform(position, transformationMatrix);
 		}
 
 		// Translate the camera.
 		public void MoveTo(Vector3 position, bool isDefault = false)
 		{
-			this.currentPosition = position;
-			viewMatrix = Matrix.CreateLookAt(position, currentTarget, Vector3.UnitY);
+			this.position = position;
+			view = Matrix.CreateLookAt(position, target, Vector3.UnitY);
 			if (isDefault) defaultPosition = position;
 		}
 
 		// Modify the gaze vector.
 		public void LookAt(Vector3 target, bool isDefault = false)
 		{
-			currentTarget = target;
-			viewMatrix = Matrix.CreateLookAt(currentPosition, target, Vector3.UnitY);
+			this.target = target;
+			view = Matrix.CreateLookAt(position, target, Vector3.UnitY);
 			if (isDefault) defaultTarget = target;
 		}
 		
@@ -61,6 +54,9 @@ namespace gram3
 		{
 			LookAt(defaultTarget);
 			MoveTo(defaultPosition);
+
+			// field of view of the camera (view angle, aspect ratio, near, far)
+			proj = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, defaultAspect, 1.0f, 500.0f);
 		}
 	}
 }

@@ -25,10 +25,7 @@ namespace gram3
 				secondsPassed = gameTime.TotalGameTime.Seconds;
 				frameCounter = 0;
 			}
-		}
 
-		public override void Draw(GameTime gameTime)
-		{
 			frameCounter++;
 		}
 	}

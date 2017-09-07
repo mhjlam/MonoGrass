@@ -12,7 +12,7 @@ namespace gram3
 
 		private KeyboardState oldKeyState;
 		private KeyboardState newKeyState;
-		private SceneSwitcher sceneSwitcher;
+		private SceneManager sceneManager;
 		private FrameRateCounter frameRateCounter;
 
 		public Application()
@@ -54,7 +54,6 @@ namespace gram3
 		{
 			// Setup device
 			graphicsDevice = graphicsDeviceManager.GraphicsDevice;
-			graphicsDevice.PresentationParameters.MultiSampleCount = 4;
 			graphicsDevice.RasterizerState = new RasterizerState();
 
 			// Initialize bitmap renderer and font texture
@@ -62,7 +61,7 @@ namespace gram3
 			SpriteFont spriteFont = Content.Load<SpriteFont>("fonts/arial12");
 
 			// Initialize scenemanager with device, sprite batch and sprite font
-			sceneSwitcher = new SceneSwitcher(graphicsDevice, spriteBatch, spriteFont);
+			sceneManager = new SceneManager(graphicsDevice, spriteBatch, spriteFont);
 
 			// Load 3D model
 			Model head = new Model(Content.Load<Microsoft.Xna.Framework.Graphics.Model>("models/head"), Vector3.Zero);
@@ -86,7 +85,7 @@ namespace gram3
 				AmbientColor = Color.Red,
 				AmbientIntensity = 0.2f,
 				DiffuseColor = Color.Orange,
-				DiffuseIntensity = 1.0f
+				DiffuseIntensity = 1f
 			};
 
 			PhongMaterial phongMaterial = new PhongMaterial()
@@ -94,10 +93,10 @@ namespace gram3
 				AmbientColor = Color.LightCyan,
 				AmbientIntensity = 0.2f,
 				DiffuseColor = Color.SteelBlue,
-				DiffuseIntensity = 1.0f,
+				DiffuseIntensity = 1f,
 				SpecularColor = Color.White,
-				SpecularIntensity = 2.0f,
-				SpecularPower = 12.0f
+				SpecularIntensity = 2f,
+				SpecularPower = 12f
 			};
 
 			NormalMaterial normalMaterial = new NormalMaterial()
@@ -111,17 +110,17 @@ namespace gram3
 				AmbientColor = Color.Gold,
 				AmbientIntensity = 0.2f,
 				DiffuseColor = Color.Goldenrod,
-				DiffuseIntensity = 1.0f,
+				DiffuseIntensity = 1f,
 				SpecularColor = Color.White,
-				SpecularIntensity = 2.0f,
-				SpecularPower = 25.0f,
+				SpecularIntensity = 2f,
+				SpecularPower = 25f,
 				Roughness = 0.5f,
 				ReflectanceCoefficient = 1.42f
 			};
 
 			// Initialize shaders
 			Shader lambertian = new LambertianShader(Content.Load<Effect>("shaders/lambertian"), lambertianMaterial);
-			Shader phong = new PhongShader(Content.Load<Effect>("shaders/phong"), phongMaterial, sceneSwitcher.SceneCamera);
+			Shader phong = new PhongShader(Content.Load<Effect>("shaders/phong"), phongMaterial, sceneManager.SceneCamera);
 			Shader normals = new NormalShader(Content.Load<Effect>("shaders/normals"), normalMaterial);
 			Shader cooktorrance = new CookTorranceShader(Content.Load<Effect>("shaders/cook-torrance"), cookTorranceMaterial);
 
@@ -134,19 +133,16 @@ namespace gram3
 			GaussianBlur gaussian = new GaussianBlur(graphicsDevice, spriteBatch, Content.Load<Effect>("shaders/gaussian-blur"));
 
 			// Create scenes in the scene manager
-			sceneSwitcher.CreateScene(SceneID.Lambertian, lambertian, head);
-			sceneSwitcher.CreateScene(SceneID.Phong, phong, head);
-			sceneSwitcher.CreateScene(SceneID.Normals, normals, head);
-			sceneSwitcher.CreateScene(SceneID.CookTorrance, cooktorrance, head);
-			sceneSwitcher.CreateScene(SceneID.SpotLight, spotlight, head);
-			sceneSwitcher.CreateScene(SceneID.MultiLight, multilight, head);
-			sceneSwitcher.CreateScene(SceneID.FrustumCulling, normals, heads);
-			sceneSwitcher.CreateScene(SceneID.Monochrome, cooktorrance, head, monochrome);
-			sceneSwitcher.CreateScene(SceneID.GaussianBlur, normals, head, gaussian);
-			sceneSwitcher.CreateScene(SceneID.ProjectiveTexture, projection, head);
-
-			// Load the first scene
-			sceneSwitcher.LoadFirstScene();
+			sceneManager.AddScene(SceneID.Lambertian, lambertian, head);
+			sceneManager.AddScene(SceneID.Phong, phong, head);
+			sceneManager.AddScene(SceneID.Normals, normals, head);
+			sceneManager.AddScene(SceneID.CookTorrance, cooktorrance, head);
+			sceneManager.AddScene(SceneID.SpotLight, spotlight, head);
+			sceneManager.AddScene(SceneID.MultiLight, multilight, head);
+			sceneManager.AddScene(SceneID.FrustumCulling, normals, heads);
+			sceneManager.AddScene(SceneID.Monochrome, cooktorrance, head, monochrome);
+			sceneManager.AddScene(SceneID.GaussianBlur, normals, head, gaussian);
+			sceneManager.AddScene(SceneID.ProjectiveTexture, projection, head);
 		}
 
 		protected override void Update(GameTime gameTime)
@@ -158,7 +154,7 @@ namespace gram3
 			Window.Title = "Scene viewer | FPS: " + frameRateCounter.FrameRate;
 
 			// Update the parameters for the scene
-			sceneSwitcher.UpdateScene();
+			sceneManager.UpdateScene();
 
 			// Get the state of the keyboard
 			newKeyState = Keyboard.GetState();
@@ -167,61 +163,57 @@ namespace gram3
 			if (newKeyState.IsKeyDown(Keys.Escape)) Exit();
 
 			// Rotational controls (WASD)
-			if (newKeyState.IsKeyDown(Keys.A)) sceneSwitcher.SceneCamera.MoveTo(Vector3.Transform(sceneSwitcher.SceneCamera.Position, Matrix.CreateRotationY(-0.025f * timeStep)));
-			if (newKeyState.IsKeyDown(Keys.D)) sceneSwitcher.SceneCamera.MoveTo(Vector3.Transform(sceneSwitcher.SceneCamera.Position, Matrix.CreateRotationY(+0.025f * timeStep)));
-			if (newKeyState.IsKeyDown(Keys.W)) sceneSwitcher.SceneCamera.MoveTo(Vector3.Transform(sceneSwitcher.SceneCamera.Position, Matrix.CreateRotationX(-0.025f * timeStep)));
-			if (newKeyState.IsKeyDown(Keys.S)) sceneSwitcher.SceneCamera.MoveTo(Vector3.Transform(sceneSwitcher.SceneCamera.Position, Matrix.CreateRotationX(+0.025f * timeStep)));
+			if (newKeyState.IsKeyDown(Keys.A)) sceneManager.SceneCamera.MoveTo(Vector3.Transform(sceneManager.SceneCamera.Position, Matrix.CreateRotationY(-0.025f * timeStep)));
+			if (newKeyState.IsKeyDown(Keys.D)) sceneManager.SceneCamera.MoveTo(Vector3.Transform(sceneManager.SceneCamera.Position, Matrix.CreateRotationY(+0.025f * timeStep)));
+			if (newKeyState.IsKeyDown(Keys.W)) sceneManager.SceneCamera.MoveTo(Vector3.Transform(sceneManager.SceneCamera.Position, Matrix.CreateRotationX(-0.025f * timeStep)));
+			if (newKeyState.IsKeyDown(Keys.S)) sceneManager.SceneCamera.MoveTo(Vector3.Transform(sceneManager.SceneCamera.Position, Matrix.CreateRotationX(+0.025f * timeStep)));
 
 			// For the frustum culling scene...
-			if (sceneSwitcher.SceneID == SceneID.FrustumCulling)
+			if (sceneManager.SceneID == SceneID.FrustumCulling)
 			{
 				// Translation of models is enabled
-				if (newKeyState.IsKeyDown(Keys.Left)) sceneSwitcher.SceneModels.ForEach(m => m.Translate(new Vector3(-1f, 0f, 0f) * timeStep)); // translate left
-				if (newKeyState.IsKeyDown(Keys.Right)) sceneSwitcher.SceneModels.ForEach(m => m.Translate(new Vector3(1f, 0f, 0f) * timeStep)); // translate right
-				if (newKeyState.IsKeyDown(Keys.Up)) sceneSwitcher.SceneModels.ForEach(m => m.Translate(new Vector3(0f, 1f, 0f) * timeStep)); // translate up
-				if (newKeyState.IsKeyDown(Keys.Down)) sceneSwitcher.SceneModels.ForEach(m => m.Translate(new Vector3(0f, -1f, 0f) * timeStep)); // translate down
+				if (newKeyState.IsKeyDown(Keys.Left)) sceneManager.SceneModels.ForEach(m => m.Translate(Vector3.Left * timeStep)); // translate left
+				if (newKeyState.IsKeyDown(Keys.Right)) sceneManager.SceneModels.ForEach(m => m.Translate(Vector3.Right * timeStep)); // translate right
+				if (newKeyState.IsKeyDown(Keys.Up)) sceneManager.SceneModels.ForEach(m => m.Translate(Vector3.Up * timeStep)); // translate up
+				if (newKeyState.IsKeyDown(Keys.Down)) sceneManager.SceneModels.ForEach(m => m.Translate(Vector3.Down * timeStep)); // translate down
 			}
 			// Rotational controls for remaining scenes
 			else
 			{
 				// Model rotation controls
-				if (newKeyState.IsKeyDown(Keys.Left)) sceneSwitcher.SceneModels.ForEach(m => m.Rotate(-0.05f * timeStep)); // clockwise rotation
-				if (newKeyState.IsKeyDown(Keys.Right)) sceneSwitcher.SceneModels.ForEach(m => m.Rotate(0.05f * timeStep)); // counter-clockwise rotation
+				if (newKeyState.IsKeyDown(Keys.Left)) sceneManager.SceneModels.ForEach(m => m.Rotate(-0.05f * timeStep)); // clockwise rotation
+				if (newKeyState.IsKeyDown(Keys.Right)) sceneManager.SceneModels.ForEach(m => m.Rotate(0.05f * timeStep)); // counter-clockwise rotation
 			}
 
-			// Reset model
+			// Reset camera/model(s)
 			if (newKeyState.IsKeyDown(Keys.R))
 			{
-				foreach (Model model in sceneSwitcher.SceneModels)
+				sceneManager.SceneCamera.Reset();
+
+				foreach (Model model in sceneManager.SceneModels)
 				{
 					model.ResetPosition();
 					model.ResetRotation();
 				}
 			}
 
-			// Reset camera
-			if (newKeyState.IsKeyDown(Keys.G))
-				sceneSwitcher.SceneCamera.Reset();
-
 			// Scene cycle controls
 			if (newKeyState.IsKeyDown(Keys.Space) && oldKeyState.IsKeyUp(Keys.Space))
 			{
 				if (newKeyState.IsKeyDown(Keys.LeftShift))
-					sceneSwitcher.LoadPrevScene();
+					sceneManager.LoadPrevScene();
 				else
-					sceneSwitcher.LoadNextScene();
+					sceneManager.LoadNextScene();
 			}
 
-			// Store the current state to use in the next update
 			oldKeyState = newKeyState;
-
 			base.Update(gameTime);
 		}
 
 		protected override void Draw(GameTime gameTime)
 		{
 			// All rendering is delegated to the SceneSwitcher as each scene requires different parameters
-			sceneSwitcher.DrawScene();
+			sceneManager.DrawScene();
 
 			base.Draw(gameTime);
 		}

@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace gram3
 {
-	public class SceneSwitcher
+	public class SceneManager
 	{
 		private SpriteFont font;
 		private SpriteBatch batch;
@@ -21,11 +21,10 @@ namespace gram3
 		public String SceneTitle => scene.SceneTitle;
 		public Camera SceneCamera => camera;
 		public Shader SceneShader => scene.Shader;
-		public Model FirstSceneModel => scene.Models[0];
+		public Model FirstModel => scene.Models[0];
 		public List<Model> SceneModels => scene.Models;
-
-		// SceneManager makes it easy to switch between scenes that require different shaders, post-processors, and other properties.
-		public SceneSwitcher(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, SpriteFont spriteFont)
+		
+		public SceneManager(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, SpriteFont spriteFont)
 		{
 			device = graphicsDevice;
 			batch = spriteBatch;
@@ -38,35 +37,31 @@ namespace gram3
 			frustum = new BoundingFrustum(camera.ViewMatrix * camera.ProjectionMatrix);
 		}
 
-		// Creates a scene with the specified parameters and automatically loads it if the created scene is the only scene.
-		public void CreateScene(SceneID id, Shader shader, Model model, PostProcess postProcess = null)
+		public void AddScene(SceneID id, Shader shader, Model model, PostProcess postProcess = null, Vector3? eye = null)
 		{
 			scenes.Add(new Scene()
 			{
 				Id = id,
-				Eye = new Vector3(0.0f, 10.0f, 100.0f),
+				Models = new List<Model> { model },
 				Shader = shader,
-				PostProcess = postProcess,
-				Models = new List<Model>() { model }
+				Eye = eye ?? new Vector3(0f, 10f, 100f),
+				PostProcess = postProcess
 			});
 
 			// if this the only scene, load it automatically
 			if (scenes.Count == 1) LoadScene(0);
 		}
 
-		// Creates a scene that contains multiple models and automatically loads it if the created scene is the only one.
-		public void CreateScene(SceneID id, Shader shader, List<Model> models, PostProcess postProcess = null)
+		public void AddScene(SceneID id, Shader shader, List<Model> models, PostProcess postProcess = null, Vector3? eye = null)
 		{
 			scenes.Add(new Scene()
 			{
 				Id = id,
-				Eye = new Vector3(0.0f, 10.0f, 200.0f), // zoomed out a little to get a better overview
 				Models = models,
 				Shader = shader,
+				Eye = eye ?? new Vector3(0f, 10f, 100f),
 				PostProcess = postProcess
 			});
-
-			camera.ProjectionMatrix = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 1.25f, 1.0f, 500.0f); // set the far distance further along
 
 			// if this the only scene, load it automatically
 			if (scenes.Count == 1) LoadScene(0);
@@ -89,19 +84,6 @@ namespace gram3
 			camera.MoveTo(scene.Eye, true);
 		}
 
-		public void LoadScene(SceneID id)
-		{
-			if (scenes.Count == 0) return;
-			if (scenes.Count == 1) id = (SceneID)0;
-			LoadScene(id);
-		}
-		
-		public void LoadFirstScene()
-		{
-			if (scenes.Count <= 1) return;
-			LoadScene(0);
-		}
-
 		public void LoadNextScene()
 		{
 			if (scenes.Count <= 1) return;
@@ -120,20 +102,22 @@ namespace gram3
 			// update view frustum
 			frustum.Matrix = camera.ViewMatrix * camera.ProjectionMatrix;
 
-			// update parameters for certain scenes
-			if (scene.Shader is PhongShader || scene.Shader is CookTorranceShader || scene.Shader is MultiLightShader)
+			// update camera position if required by scene
+			if (scene.Shader.Effect.Parameters["CameraPosition"] != null)
 			{
-				// required for specular lighting
 				scene.Shader.Effect.Parameters["CameraPosition"].SetValue(camera.Position);
 			}
-			else if (scene.Shader is ProjectionShader)
+			
+			// update projector projection if required by scene
+			if (scene.Shader.Effect.Parameters["ProjectorViewProjection"] != null)
 			{
-				// we need the model's transformation matrix to generate the projector's WorldViewProjection matrix
-				Vector3 ProjectorPosition = scene.Shader.Effect.Parameters["ProjectorPosition"].GetValueVector3();
+				// need model transformation matrix to generate the projector's WorldViewProjection matrix
+				Vector3 ProjectorPosition = (scene.Shader.Effect.Parameters["ProjectorPosition"] != null) ?
+					scene.Shader.Effect.Parameters["ProjectorPosition"].GetValueVector3() : new Vector3(0f, 20f, 30f);
 
-				Matrix ProjectorViewProjection = Matrix.Identity * FirstSceneModel.TransformationMatrix *
-											     Matrix.CreateLookAt(ProjectorPosition, new Vector3(0.0f, 10.0f, 0.0f), Vector3.Up) *
-											     Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(20f), 1.0f, 1.0f, 100.0f);
+				Matrix ProjectorViewProjection = Matrix.Identity * FirstModel.TransformationMatrix *
+											     Matrix.CreateLookAt(ProjectorPosition, new Vector3(0f, 10f, 0f), Vector3.Up) *
+											     Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(20f), 1f, 1f, 100f);
 
 				// alternatively, an orthographic matrix can be used to prevent the projection from scaling over distance
 				scene.Shader.Effect.Parameters["ProjectorViewProjection"].SetValue(ProjectorViewProjection);
@@ -195,7 +179,7 @@ namespace gram3
 			}
 
 			batch.Begin();
-			batch.DrawString(font, message, new Vector2(20, 20), Color.White);
+			batch.DrawString(font, message, new Vector2(20f, 20f), Color.White);
 			batch.End();
 		}
 	}

@@ -6,7 +6,6 @@ namespace gram3
 {
     public class Model
     {
-        private CookTorranceMaterial material;
         private Vector3 defaultPosition;
         private float defaultRotation;
 
@@ -17,7 +16,6 @@ namespace gram3
         public float Rotation => rotation;
         public Vector3 Position => position;
         public XnaModel XnaModel => xnaModel;
-        public CookTorranceMaterial Material => material;
 
         public Matrix RotationMatrix => Matrix.CreateRotationY(Rotation);
         public Matrix TranslationMatrix => Matrix.CreateTranslation(Position);
@@ -35,19 +33,6 @@ namespace gram3
             xnaModel = model;
             defaultPosition = position = modelPosition;
             defaultRotation = rotation = modelRotation;
-
-            material = new CookTorranceMaterial()
-            {
-                AmbientColor = Color.Red,
-                AmbientIntensity = 0.2f,
-                DiffuseColor = Color.Orange,
-                DiffuseIntensity = 1.0f,
-                SpecularColor = Color.White,
-                SpecularIntensity = 2.0f,
-                SpecularPower = 25.0f,
-                Roughness = 0.5f,                   // for Cook-Torrance only
-                ReflectanceCoefficient = 1.42f      // for Cook-Torrance only
-            };
         }
 
         // Draw this model using properties of the scene and the camera.
