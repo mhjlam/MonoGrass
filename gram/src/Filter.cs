@@ -2,16 +2,16 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace gram3
+namespace gram
 {
-	public class PostProcess
+	public class Filter
 	{
 		protected GraphicsDevice device;
 		protected SpriteBatch spritebatch;
 		protected Effect effect;
 
 		// A post-processor uses an effect to render over a previously rendered texture.
-		public PostProcess(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, Effect postProcessEffect)
+		public Filter(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, Effect postProcessEffect)
 		{
 			device = graphicsDevice ?? throw new ArgumentNullException("graphicsDevice");
 			spritebatch = spriteBatch ?? throw new ArgumentNullException("spriteBatch");
@@ -38,7 +38,7 @@ namespace gram3
 		}
 	}
 
-	public class GaussianBlur : PostProcess
+	public class GaussianBlur : Filter
 	{
 		// blur coefficient (sigma / σ)
 		private float sigma;

@@ -1,4 +1,4 @@
-﻿namespace gram3
+﻿namespace gram
 {
     public static class Program
     {

@@ -1,9 +1,6 @@
 float4x4 WorldViewProjection;
 float3x3 WorldIT;
 
-float3 AmbientColor : COLOR0;
-float1 AmbientIntensity;
-
 struct VSIN
 {
 	float4 Position : POSITION0;
@@ -29,7 +26,7 @@ VSOUT NormalsVS(VSIN input)
  
 float4 NormalsPS(VSOUT input) : COLOR
 {
-	return float4((AmbientColor * AmbientIntensity) + input.Color.rgb, 1.0);
+	return float4(input.Color.rgb, 1.0);
 }
 
 technique Normals

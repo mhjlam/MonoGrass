@@ -14,7 +14,6 @@ float3 SpecularColor				: COLOR2;
 float3 LightColors[MAX_LIGHTS]		: COLOR3;	// occupies COLOR[3] to COLOR[3+MAX_LIGHTS]
 
 float AmbientIntensity;
-float DiffuseIntensity;
 float SpecularIntensity;
 float SpecularPower;
 
@@ -65,7 +64,7 @@ float4 MultiLightPS(VSOUT input) : COLOR
 		float3 halfway  = normalize(lightdir + normalize(input.CameraView));
 
 		// total diffuse and specular values are a summation for all lights
-		diffuse += saturate(dot(lightdir, normal)) * DiffuseIntensity * normalize(LightColors[i]);
+		diffuse += saturate(dot(lightdir, normal)) * normalize(LightColors[i]);
 		specular += pow(saturate(dot(normal, halfway)), SpecularPower) * normalize(LightColors[i]);
 	}
 

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace gram3
+namespace gram
 {
 	public class Camera
 	{

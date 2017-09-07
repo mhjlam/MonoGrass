@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 
-namespace gram3
+namespace gram
 {
 	// define the available scenes
 	public enum SceneID
@@ -9,13 +9,14 @@ namespace gram3
 		Lambertian,
 		Phong,
 		Normals,
+		Checkers,
 		CookTorrance,
-		SpotLight,
-		MultiLight,
+		Spotlight,
+		Multilight,
 		FrustumCulling,
+		Projection,
 		Monochrome,
-		GaussianBlur,
-		ProjectiveTexture
+		GaussianBlur
 	};
 
 	public struct Scene
@@ -24,7 +25,7 @@ namespace gram3
 		public Vector3 Eye;
 		public List<Model> Models;
 		public Shader Shader;
-		public PostProcess PostProcess;
+		public Filter PostProcess;
 
 		public string SceneTitle
 		{
@@ -32,17 +33,14 @@ namespace gram3
 			{
 				switch (Id)
 				{
-					case SceneID.Lambertian: return "Lambertian";
-					case SceneID.Phong: return "Phong";
-					case SceneID.Normals: return "Normals";
 					case SceneID.CookTorrance: return "Cook-Torrance";
-					case SceneID.SpotLight: return "Spotlight";
-					case SceneID.MultiLight: return "Multiple Lights";
+					case SceneID.Spotlight: return "Spotlight";
+					case SceneID.Multilight: return "Multiple Lights";
 					case SceneID.FrustumCulling: return "Frustrum Culling";
+					case SceneID.Projection: return "Projective Texture Mapping";
 					case SceneID.Monochrome: return "Post-Processing: Monochrome";
 					case SceneID.GaussianBlur: return "Post-Processing: Gaussian Blur";
-					case SceneID.ProjectiveTexture: return "Projective Texture Mapping";
-					default: return "Unknown scene ID!";
+					default: return Id.ToString();
 				}
 			}
 		}

@@ -1,16 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace gram3
+namespace gram
 {
 	public class Shader
 	{
 		public Effect Effect { get; set; }
-
-		public Shader()
-		{
-
-		}
 
 		public Shader(Effect effect)
 		{
@@ -25,13 +20,12 @@ namespace gram3
 			effect.Parameters["SolidColor"].SetValue(material.SolidColor.ToVector3());
 		}
 	}
-
-	public class NormalShader : Shader
+	
+	public class CheckersShader : Shader
 	{
-		public NormalShader(Effect effect, NormalMaterial material) : base(effect)
+		public CheckersShader(Effect effect) : base(effect)
 		{
-			effect.Parameters["AmbientColor"].SetValue(material.AmbientColor.ToVector3());
-			effect.Parameters["AmbientIntensity"].SetValue(material.AmbientIntensity);
+
 		}
 	}
 
@@ -50,7 +44,7 @@ namespace gram3
 	{
 		public PhongShader(Effect effect, PhongMaterial material, Camera camera) : base(effect)
 		{
-			effect.Parameters["LightPosition"].SetValue(new Vector3(50.0f, 50.0f, 50.0f));
+			effect.Parameters["LightPosition"].SetValue(new Vector3(100.0f, 100.0f, 100.0f));
 			effect.Parameters["CameraPosition"].SetValue(camera.Position);
 			effect.Parameters["AmbientColor"].SetValue(material.AmbientColor.ToVector3());
 			effect.Parameters["DiffuseColor"].SetValue(material.DiffuseColor.ToVector3());
@@ -107,7 +101,7 @@ namespace gram3
 			{
 				Color.Red.ToVector3(),
 				Color.Blue.ToVector3(),
-				Color.Yellow.ToVector3()
+				Color.LightPink.ToVector3()
 			};
 
 			effect.Parameters["LightDirections"].SetValue(lights);
@@ -115,7 +109,6 @@ namespace gram3
 			effect.Parameters["LightColors"].SetValue(lightColors);
 			effect.Parameters["SpecularColor"].SetValue(material.SpecularColor.ToVector3());
 			effect.Parameters["AmbientIntensity"].SetValue(material.AmbientIntensity);
-			effect.Parameters["DiffuseIntensity"].SetValue(material.DiffuseIntensity);
 			effect.Parameters["SpecularIntensity"].SetValue(material.SpecularIntensity);
 			effect.Parameters["SpecularPower"].SetValue(256f);
 			effect.Parameters["LightCount"].SetValue(lights.Length);
@@ -126,11 +119,11 @@ namespace gram3
 	{
 		public Vector3 ProjectorPosition = new Vector3(0.0f, 20.0f, 30.0f);
 
-		public ProjectionShader(Effect effect, CookTorranceMaterial material, Texture2D texture) : base(effect)
+		public ProjectionShader(Effect effect, PhongMaterial material, Texture2D texture) : base(effect)
 		{
 			effect.Parameters["ProjectorPosition"].SetValue(ProjectorPosition);
-			effect.Parameters["AmbientColor"].SetValue(Color.Beige.ToVector3());
-			effect.Parameters["DiffuseColor"].SetValue(Color.BurlyWood.ToVector3());
+			effect.Parameters["AmbientColor"].SetValue(material.AmbientColor.ToVector3());
+			effect.Parameters["DiffuseColor"].SetValue(material.DiffuseColor.ToVector3());
 			effect.Parameters["AmbientIntensity"].SetValue(material.AmbientIntensity);
 			effect.Parameters["ProjectedTexture"].SetValue(texture);
 		}

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace gram3
+namespace gram
 {
 	public class AmbientMaterial
 	{
@@ -17,8 +17,7 @@ namespace gram3
 
 	public class NormalMaterial
 	{
-		public Color AmbientColor;
-		public float AmbientIntensity;
+
 	}
 
 	public class LambertianMaterial
@@ -26,7 +25,6 @@ namespace gram3
 		public Color AmbientColor;
 		public float AmbientIntensity;
 		public Color DiffuseColor;
-		public float DiffuseIntensity;
 	}
 
 	public class PhongMaterial
@@ -34,7 +32,6 @@ namespace gram3
 		public Color AmbientColor;
 		public float AmbientIntensity;
 		public Color DiffuseColor;
-		public float DiffuseIntensity;
 		public Color SpecularColor;
 		public float SpecularIntensity;
 		public float SpecularPower;
@@ -45,7 +42,6 @@ namespace gram3
 		public Color AmbientColor;
 		public float AmbientIntensity;
 		public Color DiffuseColor;
-		public float DiffuseIntensity;
 		public Color SpecularColor;
 		public float SpecularIntensity;
 		public float SpecularPower;

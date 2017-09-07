@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace gram3
+namespace gram
 {
 	public class SceneManager
 	{
@@ -30,14 +30,14 @@ namespace gram3
 			batch = spriteBatch;
 			font = spriteFont;
 
-			scenes = new List<Scene>(Enum.GetNames(typeof(SceneID)).Length);
+			scenes = new List<Scene>();
 			capture = new RenderTarget2D(device, device.Viewport.Width, device.Viewport.Height, false, device.PresentationParameters.BackBufferFormat, DepthFormat.Depth24);
 
 			camera = new Camera(Vector3.Zero, Vector3.Zero, (float)device.PresentationParameters.BackBufferWidth / (float)device.PresentationParameters.BackBufferHeight);
 			frustum = new BoundingFrustum(camera.ViewMatrix * camera.ProjectionMatrix);
 		}
 
-		public void AddScene(SceneID id, Shader shader, Model model, PostProcess postProcess = null, Vector3? eye = null)
+		public void AddScene(SceneID id, Shader shader, Model model, Filter postProcess = null, Vector3? eye = null)
 		{
 			scenes.Add(new Scene()
 			{
@@ -52,7 +52,7 @@ namespace gram3
 			if (scenes.Count == 1) LoadScene(0);
 		}
 
-		public void AddScene(SceneID id, Shader shader, List<Model> models, PostProcess postProcess = null, Vector3? eye = null)
+		public void AddScene(SceneID id, Shader shader, List<Model> models, Filter postProcess = null, Vector3? eye = null)
 		{
 			scenes.Add(new Scene()
 			{
@@ -87,13 +87,15 @@ namespace gram3
 		public void LoadNextScene()
 		{
 			if (scenes.Count <= 1) return;
-			LoadScene(((int)(scene.Id + 1) >= Enum.GetNames(typeof(SceneID)).Length) ? 0 : (int)(scene.Id + 1));
+			int index = scenes.FindIndex(s => s.Equals(scene));
+			LoadScene(index + 1 >= scenes.Count ? 0 : index + 1);
 		}
 
 		public void LoadPrevScene()
 		{
 			if (scenes.Count <= 1) return;
-			LoadScene(((int)(scene.Id - 1) < 0) ? Enum.GetNames(typeof(SceneID)).Length - 1 : (int)(scene.Id - 1));
+			int index = scenes.FindIndex(s => s.Equals(scene));
+			LoadScene(index - 1 < 0 ? scenes.Count - 1 : index - 1);
 		}
 
 		// Updates properties required for certain scenes.
@@ -147,13 +149,13 @@ namespace gram3
 			device.Clear(Color.Black);
 
 			// for each model, test if bounding volumes collide, then draw the model
-			if (SceneModels != null)
+			if (scene.Models != null)
 			{
-				foreach (Model model in SceneModels)
+				foreach (Model model in scene.Models)
 				{
 					// The bounding sphere of the model is non-optimal because it only looks at the first mesh
 					// Fortunately, femalehead.fbx only consists of one mesh
-					if (frustum.Intersects(new BoundingSphere(model.Position, model.XnaModel.Meshes[0].BoundingSphere.Radius)))
+					if (frustum.Intersects(new BoundingSphere(model.Position, model.MeshModel.Meshes[0].BoundingSphere.Radius)))
 					{
 						model.Draw(scene, camera);
 					}

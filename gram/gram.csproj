@@ -62,14 +62,13 @@
     </StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="src\AssemblyInfo.cs" />
     <Compile Include="src\Application.cs" />
     <Compile Include="src\Camera.cs" />
-    <Compile Include="src\FrameRateCounter.cs" />
     <Compile Include="src\Material.cs" />
     <Compile Include="src\Model.cs" />
-    <Compile Include="src\PostProcess.cs" />
+    <Compile Include="src\Filter.cs" />
     <Compile Include="src\Program.cs" />
+    <Compile Include="src\Quadrilateral.cs" />
     <Compile Include="src\Scene.cs" />
     <Compile Include="src\SceneManager.cs" />
     <Compile Include="src\Shader.cs" />
@@ -86,8 +85,10 @@
     <None Include="app.manifest" />
     <None Include="res\fonts\arial12.spritefont" />
     <None Include="res\models\head.fbx" />
+    <None Include="res\models\teapot.fbx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="res\shaders\checkers.fx" />
     <Content Include="res\shaders\cook-torrance.fx" />
     <Content Include="res\shaders\gaussian-blur.fx" />
     <Content Include="res\shaders\phong.fx" />
@@ -97,7 +98,9 @@
     <Content Include="res\shaders\normals.fx" />
     <Content Include="res\shaders\projective-texture.fx" />
     <Content Include="res\shaders\spotlight.fx" />
+    <Content Include="res\shaders\wooden.fx" />
     <Content Include="res\textures\smiley.jpg" />
+    <Content Include="res\textures\wood.jpg" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
