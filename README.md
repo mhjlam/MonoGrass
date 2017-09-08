@@ -5,4 +5,3 @@ Collection of old Computer Graphics course assignment implementations ported fro
 * Add heightmap model / shader
 * Improve camera
 * Attach shader to model instead of scene
-* Draw quadrilateral like model
