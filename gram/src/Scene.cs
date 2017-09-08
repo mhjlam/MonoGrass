@@ -10,6 +10,7 @@ namespace gram
 		Phong,
 		Normals,
 		Checkers,
+		Wood,
 		CookTorrance,
 		Spotlight,
 		Multilight,

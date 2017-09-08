@@ -85,6 +85,7 @@
     <None Include="app.manifest" />
     <None Include="res\fonts\arial12.spritefont" />
     <None Include="res\models\head.fbx" />
+    <None Include="res\models\quad.fbx" />
     <None Include="res\models\teapot.fbx" />
   </ItemGroup>
   <ItemGroup>

@@ -4,12 +4,13 @@ namespace gram
 {
 	public class Camera
 	{
-		private float defaultAspect;
 		private Matrix view;
 		private Matrix proj;
 
 		private Vector3 position;
 		private Vector3 target;
+
+		private float defaultAspect;
 		private Vector3 defaultPosition;
 		private Vector3 defaultTarget;
 
@@ -35,7 +36,7 @@ namespace gram
 		}
 
 		// Translate the camera.
-		public void MoveTo(Vector3 position, bool isDefault = false)
+		public void SetEye(Vector3 position, bool isDefault = false)
 		{
 			this.position = position;
 			view = Matrix.CreateLookAt(position, target, Vector3.UnitY);
@@ -43,17 +44,22 @@ namespace gram
 		}
 
 		// Modify the gaze vector.
-		public void LookAt(Vector3 target, bool isDefault = false)
+		public void SetGaze(Vector3 target, bool isDefault = false)
 		{
 			this.target = target;
 			view = Matrix.CreateLookAt(position, target, Vector3.UnitY);
 			if (isDefault) defaultTarget = target;
 		}
+
+		public void Update()
+		{
+			view = Matrix.CreateLookAt(position, target, Vector3.UnitY);
+		}
 		
 		public void Reset()
 		{
-			LookAt(defaultTarget);
-			MoveTo(defaultPosition);
+			SetGaze(defaultTarget);
+			SetEye(defaultPosition);
 
 			// field of view of the camera (view angle, aspect ratio, near, far)
 			proj = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, defaultAspect, 1.0f, 500.0f);

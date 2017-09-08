@@ -79,7 +79,7 @@ namespace gram
 
 		protected override void LoadContent()
 		{
-			// Setup device
+			// Setup graphics device
 			graphicsDevice = graphicsDeviceManager.GraphicsDevice;
 			graphicsDevice.RasterizerState = new RasterizerState();
 
@@ -87,19 +87,14 @@ namespace gram
 			SpriteBatch spriteBatch = new SpriteBatch(graphicsDevice);
 			SpriteFont spriteFont = Content.Load<SpriteFont>("fonts/arial12");
 
-			// Initialize scenemanager with device, sprite batch and sprite font
+			// Initialize scenemanager
 			sceneManager = new SceneManager(graphicsDevice, spriteBatch, spriteFont);
 
 			// Load models
 			Model head = new Model(Content.Load<Microsoft.Xna.Framework.Graphics.Model>("models/head"));
 			Model teapot = new Model(Content.Load<Microsoft.Xna.Framework.Graphics.Model>("models/teapot"), Vector3.Zero, new Vector3(MathHelper.ToRadians(30f), 0f, 0f), 10f);
+			Model tabletop = new Model(Content.Load<Microsoft.Xna.Framework.Graphics.Model>("models/quad"), Vector3.Zero, new Vector3(MathHelper.ToRadians(-20f), 0f, 0f), 20f);
 
-			Quadrilateral tabletop = new Quadrilateral(new Vector3(-50f, -16f, -50f),
-													   new Vector3( 50f, -16f, -50f),
-													   new Vector3(-50f, -16f,  50f),
-													   new Vector3( 50f, -16f,  50f));
-
-			// Load multiple 3D models for Frustrum Culling scene
 			List<Model> heads = new List<Model>()
 			{
 				new Model(Content.Load<Microsoft.Xna.Framework.Graphics.Model>("models/head"), new Vector3(-80f + 0 * 40f, 0f, 0f)),
@@ -113,14 +108,14 @@ namespace gram
 			};
 
 			// Initialize materials
-			LambertianMaterial lambmat = new LambertianMaterial()
+			LambertianMaterial lambertianMaterial = new LambertianMaterial()
 			{
 				AmbientColor = Color.Red,
 				AmbientIntensity = 0.2f,
 				DiffuseColor = Color.Orange
 			};
 
-			PhongMaterial phongmat = new PhongMaterial()
+			PhongMaterial phongMaterial = new PhongMaterial()
 			{
 				AmbientColor = Color.Red,
 				AmbientIntensity = 0.2f,
@@ -130,7 +125,17 @@ namespace gram
 				SpecularPower = 32f
 			};
 
-			CookTorranceMaterial cooktormat = new CookTorranceMaterial()
+			PhongMaterial woodMaterial = new PhongMaterial()
+			{
+				AmbientColor = Color.Black,
+				AmbientIntensity = 0.2f,
+				DiffuseColor = Color.BurlyWood,
+				SpecularColor = Color.White,
+				SpecularIntensity = 0.2f,
+				SpecularPower = 32f
+			};
+
+			CookTorranceMaterial cookTorranceMaterial = new CookTorranceMaterial()
 			{
 				AmbientColor = Color.Gold,
 				AmbientIntensity = 0.2f,
@@ -143,82 +148,70 @@ namespace gram
 			};
 
 			// Initialize shaders
-			Shader lamb = new LambertianShader(Content.Load<Effect>("shaders/lambertian"), lambmat);
-			Shader phong = new PhongShader(Content.Load<Effect>("shaders/phong"), phongmat, sceneManager.SceneCamera);
-			Shader normals = new Shader(Content.Load<Effect>("shaders/normals"));
-			Shader checkers = new CheckersShader(Content.Load<Effect>("shaders/checkers"));
-			Shader cooktor = new CookTorranceShader(Content.Load<Effect>("shaders/cook-torrance"), cooktormat);
-
-			Shader spotlight = new SpotLightShader(Content.Load<Effect>("shaders/spotlight"), phongmat);
-			Shader multilight = new MultiLightShader(Content.Load<Effect>("shaders/multilight"), cooktormat);
-			Shader projection = new ProjectionShader(Content.Load<Effect>("shaders/projective-texture"), phongmat, Content.Load<Texture2D>("textures/smiley"));
+			Shader woodShader = new WoodShader(Content.Load<Effect>("shaders/wooden"), woodMaterial, sceneManager.Camera, Content.Load<Texture2D>("textures/wood"));
+			Shader phongShader = new PhongShader(Content.Load<Effect>("shaders/phong"), phongMaterial, sceneManager.Camera);
+			Shader normalShader = new Shader(Content.Load<Effect>("shaders/normals"));
+			Shader checkersShader = new CheckersShader(Content.Load<Effect>("shaders/checkers"));
+			Shader spotLightShader = new SpotLightShader(Content.Load<Effect>("shaders/spotlight"), phongMaterial);
+			Shader lambertianShader = new LambertianShader(Content.Load<Effect>("shaders/lambertian"), lambertianMaterial);
+			Shader multiLightShader = new MultiLightShader(Content.Load<Effect>("shaders/multilight"), cookTorranceMaterial);
+			Shader projectionShader = new ProjectionShader(Content.Load<Effect>("shaders/projective-texture"), phongMaterial, Content.Load<Texture2D>("textures/smiley"));
+			Shader cookTorranceShader = new CookTorranceShader(Content.Load<Effect>("shaders/cook-torrance"), cookTorranceMaterial);
 
 			// Initialize post-processors
 			Filter monochrome = new Filter(graphicsDevice, spriteBatch, Content.Load<Effect>("shaders/monochrome"));
 			Filter gaussian = new GaussianBlur(graphicsDevice, spriteBatch, Content.Load<Effect>("shaders/gaussian-blur"));
 
 			// Create scenes in the scene manager
-			sceneManager.AddScene(SceneID.Lambertian, lamb, teapot);
-			sceneManager.AddScene(SceneID.Phong, phong, teapot);
-			sceneManager.AddScene(SceneID.Normals, normals, head);
-			sceneManager.AddScene(SceneID.Checkers, checkers, teapot);
-			sceneManager.AddScene(SceneID.CookTorrance, cooktor, head);
-			sceneManager.AddScene(SceneID.Spotlight, spotlight, head);
-			sceneManager.AddScene(SceneID.Multilight, multilight, head);
-			sceneManager.AddScene(SceneID.FrustumCulling, normals, heads);
-			sceneManager.AddScene(SceneID.Projection, projection, head);
-			sceneManager.AddScene(SceneID.Monochrome, cooktor, head, monochrome);
-			sceneManager.AddScene(SceneID.GaussianBlur, normals, head, gaussian);
+			sceneManager.AddScene(SceneID.Lambertian, lambertianShader, teapot);
+			sceneManager.AddScene(SceneID.Phong, phongShader, teapot);
+			sceneManager.AddScene(SceneID.Normals, normalShader, head);
+			sceneManager.AddScene(SceneID.Checkers, checkersShader, teapot);
+			sceneManager.AddScene(SceneID.Wood, woodShader, tabletop);
+			sceneManager.AddScene(SceneID.CookTorrance, cookTorranceShader, head);
+			sceneManager.AddScene(SceneID.Spotlight, spotLightShader, head);
+			sceneManager.AddScene(SceneID.Multilight, multiLightShader, head);
+			sceneManager.AddScene(SceneID.FrustumCulling, normalShader, heads);
+			sceneManager.AddScene(SceneID.Projection, projectionShader, head);
+			sceneManager.AddScene(SceneID.Monochrome, cookTorranceShader, head, monochrome);
+			sceneManager.AddScene(SceneID.GaussianBlur, normalShader, head, gaussian);
 		}
 
-		protected override void Update(GameTime gameTime)
+		private void HandleInput(float delta)
 		{
-			// Timestep is used for frame independent updating
-			float timeStep = (float)gameTime.ElapsedGameTime.TotalSeconds * 60f;
-
-			// Set window title
-			Window.Title = "Scene viewer | FPS: " + frameRateCounter.FrameRate;
-
-			// Update the parameters for the scene
-			sceneManager.UpdateScene();
-
-			// Get the state of the keyboard
 			newKeyState = Keyboard.GetState();
 
 			// Escape exits window
 			if (newKeyState.IsKeyDown(Keys.Escape)) Exit();
 
 			// Camera rotation controls (WASD)
-			if (newKeyState.IsKeyDown(Keys.A)) sceneManager.SceneCamera.MoveTo(Vector3.Transform(sceneManager.SceneCamera.Position, Matrix.CreateRotationY(-0.025f * timeStep)));
-			if (newKeyState.IsKeyDown(Keys.D)) sceneManager.SceneCamera.MoveTo(Vector3.Transform(sceneManager.SceneCamera.Position, Matrix.CreateRotationY(+0.025f * timeStep)));
-			if (newKeyState.IsKeyDown(Keys.W)) sceneManager.SceneCamera.MoveTo(Vector3.Transform(sceneManager.SceneCamera.Position, Matrix.CreateRotationX(-0.025f * timeStep)));
-			if (newKeyState.IsKeyDown(Keys.S)) sceneManager.SceneCamera.MoveTo(Vector3.Transform(sceneManager.SceneCamera.Position, Matrix.CreateRotationX(+0.025f * timeStep)));
+			if (newKeyState.IsKeyDown(Keys.A)) sceneManager.Camera.SetEye(Vector3.Transform(sceneManager.Camera.Position, Matrix.CreateRotationY(-0.025f * delta)));
+			if (newKeyState.IsKeyDown(Keys.D)) sceneManager.Camera.SetEye(Vector3.Transform(sceneManager.Camera.Position, Matrix.CreateRotationY(+0.025f * delta)));
+			if (newKeyState.IsKeyDown(Keys.W)) sceneManager.Camera.SetEye(Vector3.Transform(sceneManager.Camera.Position, Matrix.CreateRotationX(-0.025f * delta)));
+			if (newKeyState.IsKeyDown(Keys.S)) sceneManager.Camera.SetEye(Vector3.Transform(sceneManager.Camera.Position, Matrix.CreateRotationX(+0.025f * delta)));
 
 			// Model translation controls for frustrum culling scene (cursor keys)
 			if (sceneManager.SceneID == SceneID.FrustumCulling)
 			{
-				if (newKeyState.IsKeyDown(Keys.Left)) sceneManager.SceneModels.ForEach(m => m.Translate(Vector3.Left * timeStep));
-				if (newKeyState.IsKeyDown(Keys.Right)) sceneManager.SceneModels.ForEach(m => m.Translate(Vector3.Right * timeStep));
-				if (newKeyState.IsKeyDown(Keys.Up)) sceneManager.SceneModels.ForEach(m => m.Translate(Vector3.Up * timeStep));
-				if (newKeyState.IsKeyDown(Keys.Down)) sceneManager.SceneModels.ForEach(m => m.Translate(Vector3.Down * timeStep));
+				if (newKeyState.IsKeyDown(Keys.Left)) sceneManager.SceneModels.ForEach(m => m.Translate(Vector3.Left * delta));
+				if (newKeyState.IsKeyDown(Keys.Right)) sceneManager.SceneModels.ForEach(m => m.Translate(Vector3.Right * delta));
+				if (newKeyState.IsKeyDown(Keys.Up)) sceneManager.SceneModels.ForEach(m => m.Translate(Vector3.Up * delta));
+				if (newKeyState.IsKeyDown(Keys.Down)) sceneManager.SceneModels.ForEach(m => m.Translate(Vector3.Down * delta));
 			}
 			// Model rotation controls for remaining scenes (cursor keys)
 			else
 			{
-				if (newKeyState.IsKeyDown(Keys.Left)) sceneManager.SceneModels.ForEach(m => m.RotateY(-0.05f * timeStep));
-				if (newKeyState.IsKeyDown(Keys.Right)) sceneManager.SceneModels.ForEach(m => m.RotateY(0.05f * timeStep));
+				if (newKeyState.IsKeyDown(Keys.Left)) sceneManager.SceneModels.ForEach(m => m.RotateY(-0.05f * delta));
+				if (newKeyState.IsKeyDown(Keys.Right)) sceneManager.SceneModels.ForEach(m => m.RotateY(0.05f * delta));
 			}
 
 			// Reset camera/model(s)
 			if (newKeyState.IsKeyDown(Keys.R))
 			{
-				sceneManager.SceneCamera.Reset();
+				sceneManager.Camera.Reset();
 
 				foreach (Model model in sceneManager.SceneModels)
-				{
-					model.ResetPosition();
-					model.ResetRotation();
-				}
+					model.Reset();
 			}
 
 			// Scene cycle controls
@@ -231,13 +224,22 @@ namespace gram
 			}
 
 			oldKeyState = newKeyState;
+		}
+
+		protected override void Update(GameTime gameTime)
+		{
+			float delta = (float)gameTime.ElapsedGameTime.TotalSeconds * 60f;
+			Window.Title = "Scene viewer | FPS: " + frameRateCounter.FrameRate;
+
+			sceneManager.Update();
+			HandleInput(delta);
+
 			base.Update(gameTime);
 		}
 
 		protected override void Draw(GameTime gameTime)
 		{
-			// Let SceneSwitcher render active scene
-			sceneManager.DrawScene();
+			sceneManager.Draw();
 			base.Draw(gameTime);
 		}
 	}

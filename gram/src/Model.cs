@@ -1,20 +1,16 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MeshModel = Microsoft.Xna.Framework.Graphics.Model;
+using XModel = Microsoft.Xna.Framework.Graphics.Model;
 
 namespace gram
 {
 	public class Model
 	{
-		private float defaultScale;
-		private Vector3 defaultRotation;
-		private Vector3 defaultPosition;
+		private float   defaultScale,    scale;
+		private Vector3 defaultRotation, rotation;
+		private Vector3 defaultPosition, position;
 
-		private float scale;
-		private Vector3 rotation;
-		private Vector3 position;
-
-		private MeshModel meshModel;
+		private XModel xModel;
 
 		public Vector3 Rotation
 		{
@@ -28,11 +24,9 @@ namespace gram
 			set { position = value; }
 		}
 
-		public MeshModel MeshModel => meshModel;
+		public XModel XModel => xModel;
 		public Matrix ScaleMatrix => Matrix.CreateScale(scale);
-		public Matrix RotationMatrix => Matrix.CreateFromAxisAngle(Vector3.UnitX, Rotation.X) * 
-										Matrix.CreateFromAxisAngle(Vector3.UnitY, Rotation.Y) * 
-										Matrix.CreateFromAxisAngle(Vector3.UnitZ, Rotation.Z);
+		public Matrix RotationMatrix => Matrix.CreateFromYawPitchRoll(Rotation.Y, Rotation.X, Rotation.Z);
 		public Matrix TranslationMatrix => Matrix.CreateTranslation(Position);
 		public Matrix TransformationMatrix => ScaleMatrix * RotationMatrix * TranslationMatrix;
 
@@ -41,21 +35,15 @@ namespace gram
 		public void RotateY(float r) => rotation.Y += r;
 		public void RotateZ(float r) => rotation.Z += r;
 		public void Translate(Vector3 t) => position += t;
-		public void ResetPosition() => position = defaultPosition;
-		public void ResetRotation() => rotation = defaultRotation;
-		public void ResetScale() => scale = defaultScale;
 
-
-		// Model3D describes an XNA model and manages some of its properties.
-		public Model(MeshModel model, Vector3 position = new Vector3(), Vector3 rotation = new Vector3(), float scale = 1f)
+		public Model(XModel model, Vector3 position = new Vector3(), Vector3 rotation = new Vector3(), float scale = 1f)
 		{
-			meshModel = model;
+			xModel = model;
 			defaultPosition = this.position = position;
 			defaultRotation = this.rotation = rotation;
 			defaultScale = this.scale = scale;
 		}
-
-		// Draw this model using properties of the scene and the camera.
+		
 		public void Draw(Scene scene, Camera camera)
 		{
 			Matrix World = Matrix.Identity * TransformationMatrix;
@@ -64,7 +52,7 @@ namespace gram
 
 			Matrix WorldViewProjection = Matrix.Multiply(World, Matrix.Multiply(View, Projection));
 
-			foreach (ModelMesh mesh in MeshModel.Meshes)
+			foreach (ModelMesh mesh in XModel.Meshes)
 			{
 				foreach (ModelMeshPart part in mesh.MeshParts)
 				{
@@ -80,6 +68,13 @@ namespace gram
 
 				mesh.Draw();
 			}
+		}
+
+		public void Reset()
+		{
+			scale = defaultScale;
+			position = defaultPosition;
+			rotation = defaultRotation;
 		}
 	}
 }

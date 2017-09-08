@@ -29,6 +29,23 @@ namespace gram
 		}
 	}
 
+	public class WoodShader : Shader
+	{
+		public WoodShader(Effect effect, PhongMaterial material, Camera camera, Texture2D texture) : base(effect)
+		{
+			effect.Parameters["Texture"].SetValue(texture);
+
+			effect.Parameters["LightPosition"].SetValue(new Vector3(100.0f, 100.0f, 100.0f));
+			effect.Parameters["CameraPosition"].SetValue(camera.Position);
+			effect.Parameters["AmbientColor"].SetValue(material.AmbientColor.ToVector3());
+			effect.Parameters["DiffuseColor"].SetValue(material.DiffuseColor.ToVector3());
+			effect.Parameters["AmbientIntensity"].SetValue(material.AmbientIntensity);
+			effect.Parameters["SpecularColor"].SetValue(material.SpecularColor.ToVector3());
+			effect.Parameters["SpecularIntensity"].SetValue(material.SpecularIntensity);
+			effect.Parameters["SpecularPower"].SetValue(material.SpecularPower);
+		}
+	}
+
 	public class LambertianShader : Shader
 	{
 		public LambertianShader(Effect effect, LambertianMaterial material) : base(effect)

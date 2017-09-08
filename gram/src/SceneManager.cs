@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Linq;
 
 namespace gram
 {
@@ -12,16 +13,14 @@ namespace gram
 		private GraphicsDevice device;
 
 		private Scene scene;
+		private List<Scene> scenes;
+
 		private Camera camera;
 		private RenderTarget2D capture;
 		private BoundingFrustum frustum;
-		private List<Scene> scenes;
 		
 		public SceneID SceneID => scene.Id;
-		public String SceneTitle => scene.SceneTitle;
-		public Camera SceneCamera => camera;
-		public Shader SceneShader => scene.Shader;
-		public Model FirstModel => scene.Models[0];
+		public Camera Camera => camera;
 		public List<Model> SceneModels => scene.Models;
 		
 		public SceneManager(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, SpriteFont spriteFont)
@@ -48,7 +47,7 @@ namespace gram
 				PostProcess = postProcess
 			});
 
-			// if this the only scene, load it automatically
+			// Load first scene automatically
 			if (scenes.Count == 1) LoadScene(0);
 		}
 
@@ -62,12 +61,10 @@ namespace gram
 				Eye = eye ?? new Vector3(0f, 10f, 100f),
 				PostProcess = postProcess
 			});
-
-			// if this the only scene, load it automatically
+			
 			if (scenes.Count == 1) LoadScene(0);
 		}
-
-		// Loads the scene with the given id. If no scene with that id exists, nothing happens.
+		
 		public void LoadScene(int index)
 		{
 			if (scenes.Count == 0) return;
@@ -76,12 +73,9 @@ namespace gram
 			scene = scenes[index];
 
 			foreach (Model model in scene.Models)
-			{
-				model.ResetPosition();
-				model.ResetRotation();
-			}
+				model.Reset();
 
-			camera.MoveTo(scene.Eye, true);
+			camera.SetEye(scene.Eye, true);
 		}
 
 		public void LoadNextScene()
@@ -97,50 +91,42 @@ namespace gram
 			int index = scenes.FindIndex(s => s.Equals(scene));
 			LoadScene(index - 1 < 0 ? scenes.Count - 1 : index - 1);
 		}
-
-		// Updates properties required for certain scenes.
-		public void UpdateScene()
+		
+		public void Update()
 		{
-			// update view frustum
+			// Update camera matrix
+			camera.Update();
+
+			// Update view frustum
 			frustum.Matrix = camera.ViewMatrix * camera.ProjectionMatrix;
 
-			// update camera position if required by scene
+			// Update camera position if required by scene
 			if (scene.Shader.Effect.Parameters["CameraPosition"] != null)
-			{
 				scene.Shader.Effect.Parameters["CameraPosition"].SetValue(camera.Position);
-			}
 			
-			// update projector projection if required by scene
+			// Update projector projection if required by scene
 			if (scene.Shader.Effect.Parameters["ProjectorViewProjection"] != null)
 			{
-				// need model transformation matrix to generate the projector's WorldViewProjection matrix
+				// Need model transformation matrix to generate projector's WorldViewProjection matrix
 				Vector3 ProjectorPosition = (scene.Shader.Effect.Parameters["ProjectorPosition"] != null) ?
-					scene.Shader.Effect.Parameters["ProjectorPosition"].GetValueVector3() : new Vector3(0f, 20f, 30f);
+											 scene.Shader.Effect.Parameters["ProjectorPosition"].GetValueVector3() : 
+											 new Vector3(0f, 20f, 30f);
 
-				Matrix ProjectorViewProjection = Matrix.Identity * FirstModel.TransformationMatrix *
+				Matrix ProjectorViewProjection = Matrix.Identity * SceneModels.First().TransformationMatrix *
 											     Matrix.CreateLookAt(ProjectorPosition, new Vector3(0f, 10f, 0f), Vector3.Up) *
 											     Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(20f), 1f, 1f, 100f);
 
-				// alternatively, an orthographic matrix can be used to prevent the projection from scaling over distance
+				// An orthographic matrix prevents the projection from scaling over distance
 				scene.Shader.Effect.Parameters["ProjectorViewProjection"].SetValue(ProjectorViewProjection);
 			}
 		}
 
-		// Draws the current scene.
-		public void DrawScene()
+		public void Draw()
 		{
-			// no need to draw if there are no scenes
 			if (scenes.Count == 0) return;
+			if (scene.Models.Count == 0) return;
 
-			// keep track of number of objects that are not drawn due to frustrum culling
-			int numCulled = 0;
-
-			// fix the spritebatch messing up the renderer
-			device.BlendState = BlendState.Opaque;
-			device.DepthStencilState = DepthStencilState.Default;
-			device.SamplerStates[0] = SamplerState.LinearWrap;
-			
-			// if this scene has a post-processor attached, render to texture instead of default renderer
+			// For post-process scenes, render to texture instead of to back buffer
 			if (scene.PostProcess != null)
 			{
 				device.SetRenderTarget(capture);
@@ -148,41 +134,37 @@ namespace gram
 
 			device.Clear(Color.Black);
 
-			// for each model, test if bounding volumes collide, then draw the model
-			if (scene.Models != null)
+			foreach (Model model in scene.Models)
 			{
-				foreach (Model model in scene.Models)
-				{
-					// The bounding sphere of the model is non-optimal because it only looks at the first mesh
-					// Fortunately, femalehead.fbx only consists of one mesh
-					if (frustum.Intersects(new BoundingSphere(model.Position, model.MeshModel.Meshes[0].BoundingSphere.Radius)))
-					{
-						model.Draw(scene, camera);
-					}
-					else
-					{
-						numCulled++; // an object was culled, as its bounding sphere did not intersect with the bounding frustum
-					}
-				}
+				// Accumulate bounding spheres of all mesh parts
+				BoundingSphere boundingSphere = new BoundingSphere();
+
+				foreach (ModelMesh mesh in model.XModel.Meshes)
+					boundingSphere = BoundingSphere.CreateMerged(boundingSphere, mesh.BoundingSphere);
+
+				boundingSphere.Center = model.Position;
+				
+				// Only draw model when its bounding sphere intersects the viewing frustum
+				if (frustum.Intersects(boundingSphere))
+					model.Draw(scene, camera);
 			}
 
-			// store the rendered image into a buffer and redraw via post-processor using the captured image
+			// Use captured image to draw to back buffer using post-process shader
 			if (scene.PostProcess != null)
 			{
 				device.SetRenderTarget(null);
 				scene.PostProcess.Draw(capture);
 			}
 
-			// show on-screen information with a sprite font
-			string message = SceneTitle;
-			if (scene.Id == SceneID.FrustumCulling)
-			{
-				message = SceneTitle + " (" + numCulled + " objects are culled)";
-			}
-
+			// Show on-screen scene information
 			batch.Begin();
-			batch.DrawString(font, message, new Vector2(20f, 20f), Color.White);
+			batch.DrawString(font, scene.SceneTitle, new Vector2(20f, 20f), Color.White);
 			batch.End();
+
+			// Reset device parameters messed up by SpriteBatch
+			device.BlendState = BlendState.Opaque;
+			device.DepthStencilState = DepthStencilState.Default;
+			device.SamplerStates[0] = SamplerState.LinearWrap;
 		}
 	}
 }

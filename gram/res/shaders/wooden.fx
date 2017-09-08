@@ -1,14 +1,17 @@
 ﻿float4x4 WorldViewProjection;
 float3x3 WorldIT;
+float3x3 World;
 
-Texture2D Texture;
-
-float3 ViewPosition : POSITION0;
-float3 LightDirection : POSITION1;
-
+float3 LightPosition : POSITION0;
+float3 CameraPosition : POSITION1;
+float3 AmbientColor : COLOR0;
+float1 AmbientIntensity;
+float3 DiffuseColor : COLOR1;
+float3 SpecularColor : COLOR2;
 float1 SpecularIntensity;
 float1 SpecularPower;
-float4 SpecularColor : COLOR0;
+
+Texture2D Texture;
 
 SamplerState Sampler
 {
@@ -27,31 +30,35 @@ struct VSIN
 struct VSOUT
 {
 	float4 Position : POSITION0;
-	float2 Texcoord : TEXCOORD0;
-	float3 Normal : TEXCOORD1;
-	float3 ViewPosition : TEXCOORD2;
+	float3 Normal : TEXCOORD0;
+	float2 Texcoord : TEXCOORD1;
+	float3 WorldPos : POSITION1;
 };
 
 
 VSOUT WoodVS(VSIN input)
 {
 	VSOUT output;
-
 	output.Position = mul(input.Position, WorldViewProjection);
-	output.Texcoord = input.Texcoord;
 	output.Normal = normalize(mul(input.Normal, WorldIT));
-	output.ViewPosition = ViewPosition - output.Position.xyz;
-
+	output.Texcoord = input.Texcoord;
+	output.WorldPos = mul(input.Position.xyz, World);
 	return output;
 }
 
 float4 WoodPS(VSOUT input) : COLOR
 {
-	float3 halfway = normalize(-LightDirection + input.ViewPosition);
-	float3 specular = pow(saturate(dot(input.Normal, halfway)), SpecularPower) * (SpecularIntensity * 0.3f);
-	float3 texel = float3(Texture.Sample(Sampler, input.Texcoord).rg, 0.0f);
+	float3 viewdir = normalize(CameraPosition - input.WorldPos);
+	float3 lightdir = normalize(LightPosition - input.WorldPos);
+	float3 halfway = normalize(lightdir + viewdir);
 
-	return float4(saturate((texel + specular) * SpecularColor.rgb), 1.0);
+	float3 ambient = saturate((AmbientColor.rgb * AmbientIntensity).rgb);
+	float3 diffuse = saturate(dot(input.Normal, lightdir) * DiffuseColor.rgb);
+	float3 specular = saturate(pow(saturate(dot(input.Normal, halfway)), SpecularPower));
+
+	float3 texel = Texture.Sample(Sampler, input.Texcoord).rgb;
+
+	return float4(saturate(ambient + texel + (specular * SpecularColor * SpecularIntensity)), 1.0);
 }
 
 technique Wood

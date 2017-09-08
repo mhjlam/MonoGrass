@@ -41,9 +41,9 @@ float4 PhongPS(VSOUT input) : COLOR
 	
 	float3 ambient = saturate((AmbientColor.rgb * AmbientIntensity).rgb);
 	float3 diffuse = saturate(dot(input.Normal, lightdir) * DiffuseColor.rgb);
-	float3 specular = pow(saturate(dot(input.Normal, halfway)), SpecularPower);
+	float3 specular = saturate(pow(saturate(dot(input.Normal, halfway)), SpecularPower));
 
-	return float4(saturate(ambient + diffuse + (saturate(specular) * SpecularColor * SpecularIntensity)), 1.0);
+	return float4(saturate(ambient + diffuse + (specular * SpecularColor * SpecularIntensity)), 1.0);
 }
 
 technique Phong
