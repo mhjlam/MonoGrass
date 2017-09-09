@@ -13,22 +13,6 @@ namespace gram
 		}
 	}
 
-	public class SolidShader : Shader
-	{
-		public SolidShader(Effect effect, SolidMaterial material) : base(effect)
-		{
-			effect.Parameters["SolidColor"].SetValue(material.SolidColor.ToVector3());
-		}
-	}
-	
-	public class CheckersShader : Shader
-	{
-		public CheckersShader(Effect effect) : base(effect)
-		{
-
-		}
-	}
-
 	public class WoodShader : Shader
 	{
 		public WoodShader(Effect effect, PhongMaterial material, Camera camera, Texture2D texture) : base(effect)

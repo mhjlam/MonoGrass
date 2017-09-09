@@ -8,18 +8,6 @@ namespace gram
 		public float AmbientIntensity;
 	}
 
-	public class SolidMaterial
-	{
-		public Color AmbientColor;
-		public float AmbientIntensity;
-		public Color SolidColor;
-	}
-
-	public class NormalMaterial
-	{
-
-	}
-
 	public class LambertianMaterial
 	{
 		public Color AmbientColor;

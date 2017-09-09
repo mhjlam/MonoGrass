@@ -62,13 +62,12 @@
     </StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="src\Application.cs" />
+    <Compile Include="src\Renderer.cs" />
     <Compile Include="src\Camera.cs" />
     <Compile Include="src\Material.cs" />
     <Compile Include="src\Model.cs" />
     <Compile Include="src\Filter.cs" />
     <Compile Include="src\Program.cs" />
-    <Compile Include="src\Quadrilateral.cs" />
     <Compile Include="src\Scene.cs" />
     <Compile Include="src\SceneManager.cs" />
     <Compile Include="src\Shader.cs" />
@@ -84,8 +83,11 @@
     <MonoGameContentReference Include="res\res.mgcb" />
     <None Include="app.manifest" />
     <None Include="res\fonts\arial12.spritefont" />
+    <None Include="res\fonts\lato12.spritefont" />
+    <None Include="res\fonts\ubuntu12.spritefont" />
+    <None Include="res\models\cube.fbx" />
     <None Include="res\models\head.fbx" />
-    <None Include="res\models\quad.fbx" />
+    <None Include="res\models\tabletop.fbx" />
     <None Include="res\models\teapot.fbx" />
   </ItemGroup>
   <ItemGroup>
@@ -100,6 +102,7 @@
     <Content Include="res\shaders\projective-texture.fx" />
     <Content Include="res\shaders\spotlight.fx" />
     <Content Include="res\shaders\wooden.fx" />
+    <Content Include="res\textures\heightmap.bmp" />
     <Content Include="res\textures\smiley.jpg" />
     <Content Include="res\textures\wood.jpg" />
   </ItemGroup>

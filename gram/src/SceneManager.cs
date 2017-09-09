@@ -32,7 +32,7 @@ namespace gram
 			scenes = new List<Scene>();
 			capture = new RenderTarget2D(device, device.Viewport.Width, device.Viewport.Height, false, device.PresentationParameters.BackBufferFormat, DepthFormat.Depth24);
 
-			camera = new Camera(Vector3.Zero, Vector3.Zero, (float)device.PresentationParameters.BackBufferWidth / (float)device.PresentationParameters.BackBufferHeight);
+			camera = new Camera(new Vector3(0, 10f, 100f), Vector3.Zero, (float)device.PresentationParameters.BackBufferWidth / (float)device.PresentationParameters.BackBufferHeight);
 			frustum = new BoundingFrustum(camera.ViewMatrix * camera.ProjectionMatrix);
 		}
 
@@ -43,7 +43,7 @@ namespace gram
 				Id = id,
 				Models = new List<Model> { model },
 				Shader = shader,
-				Eye = eye ?? new Vector3(0f, 10f, 100f),
+				Eye = eye ?? new Vector3(0f, 0f, 100f),
 				PostProcess = postProcess
 			});
 
@@ -58,7 +58,7 @@ namespace gram
 				Id = id,
 				Models = models,
 				Shader = shader,
-				Eye = eye ?? new Vector3(0f, 10f, 100f),
+				Eye = eye ?? new Vector3(0f, 0f, 100f),
 				PostProcess = postProcess
 			});
 			
@@ -71,23 +71,20 @@ namespace gram
 			if (scenes.Count == 1) index = 0;
 
 			scene = scenes[index];
-
-			foreach (Model model in scene.Models)
-				model.Reset();
-
+			scene.Models.ForEach(m => m.Reset());
 			camera.SetEye(scene.Eye, true);
 		}
 
 		public void LoadNextScene()
 		{
-			if (scenes.Count <= 1) return;
+			if (scenes.Count < 2) return;
 			int index = scenes.FindIndex(s => s.Equals(scene));
 			LoadScene(index + 1 >= scenes.Count ? 0 : index + 1);
 		}
 
 		public void LoadPrevScene()
 		{
-			if (scenes.Count <= 1) return;
+			if (scenes.Count < 2) return;
 			int index = scenes.FindIndex(s => s.Equals(scene));
 			LoadScene(index - 1 < 0 ? scenes.Count - 1 : index - 1);
 		}
@@ -101,8 +98,7 @@ namespace gram
 			frustum.Matrix = camera.ViewMatrix * camera.ProjectionMatrix;
 
 			// Update camera position if required by scene
-			if (scene.Shader.Effect.Parameters["CameraPosition"] != null)
-				scene.Shader.Effect.Parameters["CameraPosition"].SetValue(camera.Position);
+			scene.Shader.Effect.Parameters["CameraPosition"]?.SetValue(camera.Position);
 			
 			// Update projector projection if required by scene
 			if (scene.Shader.Effect.Parameters["ProjectorViewProjection"] != null)
@@ -136,17 +132,24 @@ namespace gram
 
 			foreach (Model model in scene.Models)
 			{
-				// Accumulate bounding spheres of all mesh parts
-				BoundingSphere boundingSphere = new BoundingSphere();
+				if (model.XnaModel != null)
+				{
+					// Accumulate bounding spheres of all mesh parts
+					BoundingSphere boundingSphere = new BoundingSphere();
 
-				foreach (ModelMesh mesh in model.XModel.Meshes)
-					boundingSphere = BoundingSphere.CreateMerged(boundingSphere, mesh.BoundingSphere);
+					foreach (ModelMesh mesh in model.XnaModel.Meshes)
+						boundingSphere = BoundingSphere.CreateMerged(boundingSphere, mesh.BoundingSphere);
 
-				boundingSphere.Center = model.Position;
-				
-				// Only draw model when its bounding sphere intersects the viewing frustum
-				if (frustum.Intersects(boundingSphere))
+					boundingSphere.Center = model.Position;
+
+					// Only draw model when its bounding sphere intersects the viewing frustum
+					if (frustum.Intersects(boundingSphere))
+						model.Draw(scene, camera);
+				}
+				else
+				{
 					model.Draw(scene, camera);
+				}
 			}
 
 			// Use captured image to draw to back buffer using post-process shader

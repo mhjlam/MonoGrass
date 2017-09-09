@@ -3,9 +3,10 @@ using System.Collections.Generic;
 
 namespace gram
 {
-	// define the available scenes
+	// Define available scenes
 	public enum SceneID
 	{
+		Terrain,
 		Lambertian,
 		Phong,
 		Normals,
@@ -14,7 +15,7 @@ namespace gram
 		CookTorrance,
 		Spotlight,
 		Multilight,
-		FrustumCulling,
+		Culling,
 		Projection,
 		Monochrome,
 		GaussianBlur
@@ -35,9 +36,7 @@ namespace gram
 				switch (Id)
 				{
 					case SceneID.CookTorrance: return "Cook-Torrance";
-					case SceneID.Spotlight: return "Spotlight";
 					case SceneID.Multilight: return "Multiple Lights";
-					case SceneID.FrustumCulling: return "Frustrum Culling";
 					case SceneID.Projection: return "Projective Texture Mapping";
 					case SceneID.Monochrome: return "Post-Processing: Monochrome";
 					case SceneID.GaussianBlur: return "Post-Processing: Gaussian Blur";

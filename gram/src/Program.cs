@@ -4,7 +4,7 @@
     {
         static void Main()
         {
-            using (Application app = new Application())
+            using (Renderer app = new Renderer())
                 app.Run();
         }
     }
