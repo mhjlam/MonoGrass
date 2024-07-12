@@ -1,5 +1,5 @@
-# gram
-Collection of old Computer Graphics course assignment implementations ported from XNA to MonoGame
+# MonoGrass
+Collection of old Computer Graphics assignments ported from XNA to MonoGame (MonoGame graphics assignments).
 
 #### TODO
 * Improve camera
